@@ -142,7 +142,7 @@ AWS.config.update({
 
 var docClient = new AWS.DynamoDB.DocumentClient();
 
-console.log("Querying for movies from 1985.");
+console.log("Mazda Car Service Query.");
 
 var params = {
     TableName : "Movies",
