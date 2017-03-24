@@ -130,10 +130,9 @@ function getFinalServiceResponse(userName, response) {
  * Uses NOAA.gov API, documented: http://tidesandcurrents.noaa.gov/api/
  * Results can be verified at: http://tidesandcurrents.noaa.gov/noaatidepredictions/NOAATidesFacade.jsp?Stationid=[id]
  */
-function makeTideRequest(station, date, tideResponseCallback) {
+function makeCarServiceRequest(name, serviceResponseCallback) {
 
-    var datum = "MLLW";
-    var endpoint = 'http://tidesandcurrents.noaa.gov/api/datagetter';
+    var endpoint = 'arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData';
     var queryString = '?' + date.requestDateParam;
     queryString += '&station=' + station;
     queryString += '&product=predictions&datum=' + datum + '&units=english&time_zone=lst_ldt&format=json';
