@@ -36,27 +36,9 @@ CarServiceInfo.prototype.eventHandlers.onSessionEnded = function (sessionEndedRe
 /**
  * override intentHandlers to map intent handling functions.
  */
-TidePooler.prototype.intentHandlers = {
-    "OneshotTideIntent": function (intent, session, response) {
-        handleOneshotTideRequest(intent, session, response);
-    },
-
-    "DialogTideIntent": function (intent, session, response) {
-        // Determine if this turn is for city, for date, or an error.
-        // We could be passed slots with values, no slots, slots with no value.
-        var citySlot = intent.slots.City;
-        var dateSlot = intent.slots.Date;
-        if (citySlot && citySlot.value) {
-            handleCityDialogRequest(intent, session, response);
-        } else if (dateSlot && dateSlot.value) {
-            handleDateDialogRequest(intent, session, response);
-        } else {
-            handleNoSlotDialogRequest(intent, session, response);
-        }
-    },
-
-    "SupportedCitiesIntent": function (intent, session, response) {
-        handleSupportedCitiesRequest(intent, session, response);
+CarServiceInfo.prototype.intentHandlers = {
+    "CarServiceInfoIntent": function (intent, session, response) {
+        handleCarServiceInfoRequest(intent, session, response);
     },
 
     "AMAZON.HelpIntent": function (intent, session, response) {
@@ -74,44 +56,18 @@ TidePooler.prototype.intentHandlers = {
     }
 };
 
-// -------------------------- TidePooler Domain Specific Business Logic --------------------------
-
-// example city to NOAA station mapping. Can be found on: http://tidesandcurrents.noaa.gov/map/
-var STATIONS = {
-    'seattle': 9447130,
-    'san francisco': 9414290,
-    'monterey': 9413450,
-    'los angeles': 9410660,
-    'san diego': 9410170,
-    'boston': 8443970,
-    'new york': 8518750,
-    'virginia beach': 8638863,
-    'wilmington': 8658163,
-    'charleston': 8665530,
-    'beaufort': 8656483,
-    'myrtle beach': 8661070,
-    'miami': 8723214,
-    'tampa': 8726667,
-    'new orleans': 8761927,
-    'galveston': 8771341
-};
-
 function handleWelcomeRequest(response) {
-    var whichCityPrompt = "Which city would you like tide information for?",
+    var whichNamePrompt = "Which person would you like service information for?",
         speechOutput = {
-            speech: "<speak>Welcome to Tide Pooler. "
-                + "<audio src='https://s3.amazonaws.com/ask-storage/tidePooler/OceanWaves.mp3'/>"
-                + whichCityPrompt
+            speech: "<speak>Welcome to Mazda Car Service Information. "
+                + whichNamePrompt
                 + "</speak>",
             type: AlexaSkill.speechOutputType.SSML
         },
         repromptOutput = {
-            speech: "I can lead you through providing a city and "
-                + "day of the week to get tide information, "
-                + "or you can simply open Tide Pooler and ask a question like, "
-                + "get tide information for Seattle on Saturday. "
-                + "For a list of supported cities, ask what cities are supported. "
-                + whichCityPrompt,
+            speech: "I can lead you through providing a name "
+                + "or you can simply open Mazda Car Service and ask a question like, "
+                + "get car service information for Jason. "
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
 
