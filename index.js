@@ -67,7 +67,7 @@ function handleWelcomeRequest(response) {
         repromptOutput = {
             speech: "I can lead you through providing a name "
                 + "or you can simply open Mazda Car Service and ask a question like, "
-                + "get car service information for Jason. "
+                + "get service information for Jason. "
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
 
@@ -75,12 +75,10 @@ function handleWelcomeRequest(response) {
 }
 
 function handleHelpRequest(response) {
-    var repromptText = "Which city would you like tide information for?";
-    var speechOutput = "I can lead you through providing a city and "
-        + "day of the week to get tide information, "
-        + "or you can simply open Tide Pooler and ask a question like, "
-        + "get tide information for Seattle on Saturday. "
-        + "For a list of supported cities, ask what cities are supported. "
+    var repromptText = "Which name would you like service information for?";
+    var speechOutput = "I can lead you through providing a name "
+        + "or you can simply open Mazda Car Service and ask a question like, "
+        + "get service information for Jason. "
         + "Or you can say exit. "
         + repromptText;
 
@@ -88,148 +86,37 @@ function handleHelpRequest(response) {
 }
 
 /**
- * Handles the case where the user asked or for, or is otherwise being with supported cities
- */
-function handleSupportedCitiesRequest(intent, session, response) {
-    // get city re-prompt
-    var repromptText = "Which city would you like tide information for?";
-    var speechOutput = "Currently, I know tide information for these coastal cities: " + getAllStationsText()
-        + repromptText;
-
-    response.ask(speechOutput, repromptText);
-}
-
-/**
- * Handles the dialog step where the user provides a city
- */
-function handleCityDialogRequest(intent, session, response) {
-
-    var cityStation = getCityStationFromIntent(intent, false),
-        repromptText,
-        speechOutput;
-    if (cityStation.error) {
-        repromptText = "Currently, I know tide information for these coastal cities: " + getAllStationsText()
-            + "Which city would you like tide information for?";
-        // if we received a value for the incorrect city, repeat it to the user, otherwise we received an empty slot
-        speechOutput = cityStation.city ? "I'm sorry, I don't have any data for " + cityStation.city + ". " + repromptText : repromptText;
-        response.ask(speechOutput, repromptText);
-        return;
-    }
-
-    // if we don't have a date yet, go to date. If we have a date, we perform the final request
-    if (session.attributes.date) {
-        getFinalTideResponse(cityStation, session.attributes.date, response);
-    } else {
-        // set city in session and prompt for date
-        session.attributes.city = cityStation;
-        speechOutput = "For which date?";
-        repromptText = "For which date would you like tide information for " + cityStation.city + "?";
-
-        response.ask(speechOutput, repromptText);
-    }
-}
-
-/**
- * Handles the dialog step where the user provides a date
- */
-function handleDateDialogRequest(intent, session, response) {
-
-    var date = getDateFromIntent(intent),
-        repromptText,
-        speechOutput;
-    if (!date) {
-        repromptText = "Please try again saying a day of the week, for example, Saturday. "
-            + "For which date would you like tide information?";
-        speechOutput = "I'm sorry, I didn't understand that date. " + repromptText;
-
-        response.ask(speechOutput, repromptText);
-        return;
-    }
-
-    // if we don't have a city yet, go to city. If we have a city, we perform the final request
-    if (session.attributes.city) {
-        getFinalTideResponse(session.attributes.city, date, response);
-    } else {
-        // The user provided a date out of turn. Set date in session and prompt for city
-        session.attributes.date = date;
-        speechOutput = "For which city would you like tide information for " + date.displayDate + "?";
-        repromptText = "For which city?";
-
-        response.ask(speechOutput, repromptText);
-    }
-}
-
-/**
- * Handle no slots, or slot(s) with no values.
- * In the case of a dialog based skill with multiple slots,
- * when passed a slot with no value, we cannot have confidence
- * it is the correct slot type so we rely on session state to
- * determine the next turn in the dialog, and reprompt.
- */
-function handleNoSlotDialogRequest(intent, session, response) {
-    if (session.attributes.city) {
-        // get date re-prompt
-        var repromptText = "Please try again saying a day of the week, for example, Saturday. ";
-        var speechOutput = repromptText;
-
-        response.ask(speechOutput, repromptText);
-    } else {
-        // get city re-prompt
-        handleSupportedCitiesRequest(intent, session, response);
-    }
-}
-
-/**
  * This handles the one-shot interaction, where the user utters a phrase like:
  * 'Alexa, open Tide Pooler and get tide information for Seattle on Saturday'.
  * If there is an error in a slot, this will guide the user to the dialog approach.
  */
-function handleOneshotTideRequest(intent, session, response) {
+function handleCarServiceInfoRequest(intent, session, response) {
 
-    // Determine city, using default if none provided
-    var cityStation = getCityStationFromIntent(intent, true),
+    var userName = getUserNameFromIntent(intent, true),
         repromptText,
         speechOutput;
-    if (cityStation.error) {
-        // invalid city. move to the dialog
-        repromptText = "Currently, I know tide information for these coastal cities: " + getAllStationsText()
-            + "Which city would you like tide information for?";
+    if (userName.error) {
+        // invalid name. move to the dialog
+        repromptText = "I don't know car service information for: " + userName.name
+            + "Which name would you like service information for?";
         // if we received a value for the incorrect city, repeat it to the user, otherwise we received an empty slot
-        speechOutput = cityStation.city ? "I'm sorry, I don't have any data for " + cityStation.city + ". " + repromptText : repromptText;
+        speechOutput = userName.name ? "I'm sorry, I don't have any data for " + userName.name + ". " + repromptText : repromptText;
 
         response.ask(speechOutput, repromptText);
         return;
     }
 
-    // Determine custom date
-    var date = getDateFromIntent(intent);
-    if (!date) {
-        // Invalid date. set city in session and prompt for date
-        session.attributes.city = cityStation;
-        repromptText = "Please try again saying a day of the week, for example, Saturday. "
-            + "For which date would you like tide information?";
-        speechOutput = "I'm sorry, I didn't understand that date. " + repromptText;
-
-        response.ask(speechOutput, repromptText);
-        return;
-    }
-
-    // all slots filled, either from the user or by default values. Move to final request
-    getFinalTideResponse(cityStation, date, response);
+    getFinalServiceResponse(userName, response);
 }
 
-/**
- * Both the one-shot and dialog based paths lead to this method to issue the request, and
- * respond to the user with the final answer.
- */
-function getFinalTideResponse(cityStation, date, response) {
+function getFinalServiceResponse(userName, response) {
 
     // Issue the request, and respond to the user
-    makeTideRequest(cityStation.station, date, function tideResponseCallback(err, highTideResponse) {
+    makeServiceRequest(userName.name, function serviceResponseCallback(err, carServiceResponse) {
         var speechOutput;
 
         if (err) {
-            speechOutput = "Sorry, the National Oceanic tide service is experiencing a problem. Please try again later";
+            speechOutput = "Sorry, I'm experiencing a problem. Please try again later";
         } else {
             speechOutput = date.displayDate + " in " + cityStation.city + ", the first high tide will be around "
                 + highTideResponse.firstHighTideTime + ", and will peak at about " + highTideResponse.firstHighTideHeight
