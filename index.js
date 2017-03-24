@@ -130,7 +130,41 @@ function getFinalServiceResponse(userName, response) {
  * Uses NOAA.gov API, documented: http://tidesandcurrents.noaa.gov/api/
  * Results can be verified at: http://tidesandcurrents.noaa.gov/noaatidepredictions/NOAATidesFacade.jsp?Stationid=[id]
  */
+
 function makeCarServiceRequest(name, serviceResponseCallback) {
+    
+    var AWS = require("aws-sdk");
+
+AWS.config.update({
+  region: "us-west-2",
+  endpoint: "arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData"
+});
+
+var docClient = new AWS.DynamoDB.DocumentClient();
+
+console.log("Querying for movies from 1985.");
+
+var params = {
+    TableName : "Movies",
+    KeyConditionExpression: "#yr = :yyyy",
+    ExpressionAttributeNames:{
+        "#yr": "year"
+    },
+    ExpressionAttributeValues: {
+        ":yyyy":1985
+    }
+};
+
+docClient.query(params, function(err, data) {
+    if (err) {
+        console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+    } else {
+        console.log("Query succeeded.");
+        data.Items.forEach(function(item) {
+            console.log(" -", item.year + ": " + item.title);
+        });
+    }
+});
 
     var endpoint = 'arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData';
     var queryString = '?' + date.requestDateParam;
