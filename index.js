@@ -118,15 +118,11 @@ function getFinalServiceResponse(userName, response) {
         if (err) {
             speechOutput = "Sorry, I'm experiencing a problem. Please try again later";
         } else {
-            speechOutput = date.displayDate + " in " + cityStation.city + ", the first high tide will be around "
-                + highTideResponse.firstHighTideTime + ", and will peak at about " + highTideResponse.firstHighTideHeight
-                + ", followed by a low tide at around " + highTideResponse.lowTideTime
-                + " that will be about " + highTideResponse.lowTideHeight
-                + ". The second high tide will be around " + highTideResponse.secondHighTideTime
-                + ", and will peak at about " + highTideResponse.secondHighTideHeight + ".";
+            speechOutput = userName.name + ", your Mazda is due for a service in " + carServiceResponse.miles + "miles, your last service was "
+                + carServiceResponse.months + "months ago ";
         }
 
-        response.tellWithCard(speechOutput, "TidePooler", speechOutput)
+        response.tellWithCard(speechOutput, "MazdaCarService", speechOutput)
     });
 }
 
