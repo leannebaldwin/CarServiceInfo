@@ -1,9 +1,6 @@
 
 var APP_ID = undefined;//replace with 'amzn1.echo-sdk-ams.app.[your-unique-value-here]'
 
-/**
- * The AlexaSkill prototype and helper functions
- */
 var AlexaSkill = require('./AlexaSkill');
 
 var CarServiceInfo = function () {
@@ -118,12 +115,12 @@ function getFinalServiceResponse(userName, response) {
     });
 }
 
-function makeCarServiceRequest(name, serviceResponseCallback) {
+function makeServiceRequest(name, serviceResponseCallback) {
     
     var AWS = require("aws-sdk");
 
 AWS.config.update({
-  region: "us-west-2",
+  region: "us-east",
   endpoint: "arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData"
 });
 
@@ -152,34 +149,6 @@ docClient.query(params, function(err, data) {
         });
     }
 });
-
-function getNameFromIntent(intent, assignDefault) {
-
-    var nameSlot = intent.slots.Name;
-    // slots can be missing, or slots can be provided but with empty value.
-    // must test for both.
-    if (!nameSlot || !nameSlot.value) {
-        if (!assignDefault) {
-            return {
-                error: true
-            }
-        }
-    } else {
-        // lookup the city. Sample skill uses well known mapping of a few known cities to station id.
-        var cityName = citySlot.value;
-        if (STATIONS[cityName.toLowerCase()]) {
-            return {
-                city: cityName,
-                station: STATIONS[cityName.toLowerCase()]
-            }
-        } else {
-            return {
-                error: true,
-                city: cityName
-            }
-        }
-    }
-}
 
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
