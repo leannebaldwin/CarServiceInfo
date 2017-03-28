@@ -1,5 +1,5 @@
 
-var APP_ID = undefined;//replace with 'amzn1.echo-sdk-ams.app.[your-unique-value-here]'
+var APP_ID = 'amzn1.ask.skill.d9d4c372-4867-42c0-aa50-a684c98baf48';
 
 var AlexaSkill = require('./AlexaSkill');
 
