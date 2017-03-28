@@ -118,26 +118,24 @@ function getFinalServiceResponse(userName, response) {
 function makeServiceRequest(name, carServiceResponseCallback) {
     
     var AWS = require("aws-sdk");
-
-AWS.config.update({
-  region: "us-east",
-  endpoint: "arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData"
-});
-
-var docClient = new AWS.DynamoDB.DocumentClient();
-
-console.log("Mazda Car Service Query.");
-
-var params = {
-    TableName : "MazdaFleetUserData",
-    KeyConditionExpression: "name = :userName",
-    ExpressionAttributeNames:{
-        "name": "userName"
-    },
-    ExpressionAttributeValues: {
-        ":name":userName
-    }
-};
+    AWS.config.update({
+        region: "us-east",
+        endpoint: "arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData
+    });
+    
+    var docClient = new AWS.DynamoDB.DocumentClient();
+    console.log("Mazda Car Service Query.");
+    var params = {
+        TableName : "MazdaFleetUserData",
+        KeyConditionExpression: "name = :userName",
+        ExpressionAttributeNames:{
+            "name": "userName"
+        },
+        ExpressionAttributeValues: {
+            ":name":userName
+        }
+    };
+}
 
 docClient.query(params, function(err, data) {
     if (err) {
