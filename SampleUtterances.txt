@@ -1,0 +1,14 @@
+CarServiceInfoIntent get service info for {name}
+CarServiceInfoIntent get service information for {name}
+CarServiceInfoIntent get {name} service info
+CarServiceInfoIntent get {name} service information
+CarServiceInfoIntent get information for {name}
+CarServiceInfoIntent get info for {name}
+CarServiceInfoIntent service information for {name}
+CarServiceInfoIntent service info for {name}
+CarServiceInfoIntent car service information for {name}
+CarServiceInfoIntent car service info for {name}
+CarServiceInfoIntent get car service info for {name}
+CarServiceInfoIntent get car service information for {name}
+CarServiceInfoIntent get {name} car service information
+CarServiceInfoIntent get {name} car service info
