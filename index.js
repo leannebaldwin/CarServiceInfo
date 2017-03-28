@@ -85,21 +85,14 @@ function handleHelpRequest(response) {
     response.ask(speechOutput, repromptText);
 }
 
-/**
- * This handles the one-shot interaction, where the user utters a phrase like:
- * 'Alexa, open Tide Pooler and get tide information for Seattle on Saturday'.
- * If there is an error in a slot, this will guide the user to the dialog approach.
- */
 function handleCarServiceInfoRequest(intent, session, response) {
 
     var userName = getUserNameFromIntent(intent, true),
         repromptText,
         speechOutput;
     if (userName.error) {
-        // invalid name. move to the dialog
         repromptText = "I don't know car service information for: " + userName.name
             + "Which name would you like service information for?";
-        // if we received a value for the incorrect city, repeat it to the user, otherwise we received an empty slot
         speechOutput = userName.name ? "I'm sorry, I don't have any data for " + userName.name + ". " + repromptText : repromptText;
 
         response.ask(speechOutput, repromptText);
@@ -111,7 +104,6 @@ function handleCarServiceInfoRequest(intent, session, response) {
 
 function getFinalServiceResponse(userName, response) {
 
-    // Issue the request, and respond to the user
     makeServiceRequest(userName.name, function serviceResponseCallback(err, carServiceResponse) {
         var speechOutput;
 
@@ -125,11 +117,6 @@ function getFinalServiceResponse(userName, response) {
         response.tellWithCard(speechOutput, "MazdaCarService", speechOutput)
     });
 }
-
-/**
- * Uses NOAA.gov API, documented: http://tidesandcurrents.noaa.gov/api/
- * Results can be verified at: http://tidesandcurrents.noaa.gov/noaatidepredictions/NOAATidesFacade.jsp?Stationid=[id]
- */
 
 function makeCarServiceRequest(name, serviceResponseCallback) {
     
@@ -145,13 +132,13 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 console.log("Mazda Car Service Query.");
 
 var params = {
-    TableName : "Movies",
-    KeyConditionExpression: "#yr = :yyyy",
+    TableName : "MazdaFleetUserData",
+    KeyConditionExpression: "name = :userName",
     ExpressionAttributeNames:{
-        "#yr": "year"
+        "name": "userName"
     },
     ExpressionAttributeValues: {
-        ":yyyy":1985
+        ":name":userName
     }
 };
 
@@ -161,151 +148,20 @@ docClient.query(params, function(err, data) {
     } else {
         console.log("Query succeeded.");
         data.Items.forEach(function(item) {
-            console.log(" -", item.year + ": " + item.title);
+            console.log(" -", item.miles + ": " + item.months);
         });
     }
 });
 
-    var endpoint = 'arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData';
-    var queryString = '?' + date.requestDateParam;
-    queryString += '&station=' + station;
-    queryString += '&product=predictions&datum=' + datum + '&units=english&time_zone=lst_ldt&format=json';
+function getNameFromIntent(intent, assignDefault) {
 
-    http.get(endpoint + queryString, function (res) {
-        var noaaResponseString = '';
-        console.log('Status Code: ' + res.statusCode);
-
-        if (res.statusCode != 200) {
-            tideResponseCallback(new Error("Non 200 Response"));
-        }
-
-        res.on('data', function (data) {
-            noaaResponseString += data;
-        });
-
-        res.on('end', function () {
-            var noaaResponseObject = JSON.parse(noaaResponseString);
-
-            if (noaaResponseObject.error) {
-                console.log("NOAA error: " + noaaResponseObj.error.message);
-                tideResponseCallback(new Error(noaaResponseObj.error.message));
-            } else {
-                var highTide = findHighTide(noaaResponseObject);
-                tideResponseCallback(null, highTide);
-            }
-        });
-    }).on('error', function (e) {
-        console.log("Communications error: " + e.message);
-        tideResponseCallback(new Error(e.message));
-    });
-}
-
-/**
- * Algorithm to find the 2 high tides for the day, the first of which is smaller and occurs
- * mid-day, the second of which is larger and typically in the evening
- */
-function findHighTide(noaaResponseObj) {
-    var predictions = noaaResponseObj.predictions;
-    var lastPrediction;
-    var firstHighTide, secondHighTide, lowTide;
-    var firstTideDone = false;
-
-    for (var i = 0; i < predictions.length; i++) {
-        var prediction = predictions[i];
-
-        if (!lastPrediction) {
-            lastPrediction = prediction;
-            continue;
-        }
-
-        if (isTideIncreasing(lastPrediction, prediction)) {
-            if (!firstTideDone) {
-                firstHighTide = prediction;
-            } else {
-                secondHighTide = prediction;
-            }
-
-        } else { // we're decreasing
-
-            if (!firstTideDone && firstHighTide) {
-                firstTideDone = true;
-            } else if (secondHighTide) {
-                break; // we're decreasing after have found 2nd tide. We're done.
-            }
-
-            if (firstTideDone) {
-                lowTide = prediction;
-            }
-        }
-
-        lastPrediction = prediction;
-    }
-
-    return {
-        firstHighTideTime: alexaDateUtil.getFormattedTime(new Date(firstHighTide.t)),
-        firstHighTideHeight: getFormattedHeight(firstHighTide.v),
-        lowTideTime: alexaDateUtil.getFormattedTime(new Date(lowTide.t)),
-        lowTideHeight: getFormattedHeight(lowTide.v),
-        secondHighTideTime: alexaDateUtil.getFormattedTime(new Date(secondHighTide.t)),
-        secondHighTideHeight: getFormattedHeight(secondHighTide.v)
-    }
-}
-
-function isTideIncreasing(lastPrediction, currentPrediction) {
-    return parseFloat(lastPrediction.v) < parseFloat(currentPrediction.v);
-}
-
-/**
- * Formats the height, rounding to the nearest 1/2 foot. e.g.
- * 4.354 -> "four and a half feet".
- */
-function getFormattedHeight(height) {
-    var isNegative = false;
-    if (height < 0) {
-        height = Math.abs(height);
-        isNegative = true;
-    }
-
-    var remainder = height % 1;
-    var feet, remainderText;
-
-    if (remainder < 0.25) {
-        remainderText = '';
-        feet = Math.floor(height);
-    } else if (remainder < 0.75) {
-        remainderText = " and a half";
-        feet = Math.floor(height);
-    } else {
-        remainderText = '';
-        feet = Math.ceil(height);
-    }
-
-    if (isNegative) {
-        feet *= -1;
-    }
-
-    var formattedHeight = feet + remainderText + " feet";
-    return formattedHeight;
-}
-
-/**
- * Gets the city from the intent, or returns an error
- */
-function getCityStationFromIntent(intent, assignDefault) {
-
-    var citySlot = intent.slots.City;
+    var nameSlot = intent.slots.Name;
     // slots can be missing, or slots can be provided but with empty value.
     // must test for both.
-    if (!citySlot || !citySlot.value) {
+    if (!nameSlot || !nameSlot.value) {
         if (!assignDefault) {
             return {
                 error: true
-            }
-        } else {
-            // For sample skill, default to Seattle.
-            return {
-                city: 'seattle',
-                station: STATIONS.seattle
             }
         }
     } else {
@@ -325,51 +181,8 @@ function getCityStationFromIntent(intent, assignDefault) {
     }
 }
 
-/**
- * Gets the date from the intent, defaulting to today if none provided,
- * or returns an error
- */
-function getDateFromIntent(intent) {
-
-    var dateSlot = intent.slots.Date;
-    // slots can be missing, or slots can be provided but with empty value.
-    // must test for both.
-    if (!dateSlot || !dateSlot.value) {
-        // default to today
-        return {
-            displayDate: "Today",
-            requestDateParam: "date=today"
-        }
-    } else {
-
-        var date = new Date(dateSlot.value);
-
-        // format the request date like YYYYMMDD
-        var month = (date.getMonth() + 1);
-        month = month < 10 ? '0' + month : month;
-        var dayOfMonth = date.getDate();
-        dayOfMonth = dayOfMonth < 10 ? '0' + dayOfMonth : dayOfMonth;
-        var requestDay = "begin_date=" + date.getFullYear() + month + dayOfMonth
-            + "&range=24";
-
-        return {
-            displayDate: alexaDateUtil.getFormattedDate(date),
-            requestDateParam: requestDay
-        }
-    }
-}
-
-function getAllStationsText() {
-    var stationList = '';
-    for (var station in STATIONS) {
-        stationList += station + ", ";
-    }
-
-    return stationList;
-}
-
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
-    var tidePooler = new TidePooler();
-    tidePooler.execute(event, context);
+    var carServiceInfo = new CarServiceInfo();
+    carServiceInfo.execute(event, context);
 };
