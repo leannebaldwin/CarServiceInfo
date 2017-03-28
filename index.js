@@ -101,7 +101,7 @@ function handleCarServiceInfoRequest(intent, session, response) {
 
 function getFinalServiceResponse(userName, response) {
 
-    makeServiceRequest(userName.name, function serviceResponseCallback(err, carServiceResponse) {
+    makeServiceRequest(userName.name, function carServiceResponseCallback(err, carServiceResponse) {
         var speechOutput;
 
         if (err) {
@@ -115,7 +115,7 @@ function getFinalServiceResponse(userName, response) {
     });
 }
 
-function makeServiceRequest(name, serviceResponseCallback) {
+function makeServiceRequest(name, carServiceResponseCallback) {
     
     var AWS = require("aws-sdk");
 
