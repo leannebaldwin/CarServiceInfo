@@ -64,7 +64,7 @@ function handleWelcomeRequest(response) {
         repromptOutput = {
             speech: "I can lead you through providing a name "
                 + "or you can simply open Mazda Car Service and ask a question like, "
-                + "get service information for Jason. "
+                + "get service information for Jason. ",
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
 
