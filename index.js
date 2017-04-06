@@ -120,7 +120,7 @@ function makeServiceRequest(name, carServiceResponseCallback) {
     var AWS = require("aws-sdk");
     AWS.config.update({
         region: "us-east",
-        endpoint: "arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData
+        endpoint: "arn:aws:dynamodb:us-east-1:646350141162:table/MazdaFleetUserData"
     });
     
     var docClient = new AWS.DynamoDB.DocumentClient();
